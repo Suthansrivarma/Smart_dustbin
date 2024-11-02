@@ -1,0 +1,61 @@
+#include <Servo.h>
+#include <SoftwareSerial.h>
+const int trigPin = 9;
+const int echoPin = 8;
+const int irSensorPin = 7;
+const int servoPin = 6;
+SoftwareSerial GSM(10, 11); 
+Servo dustbinServo;
+long duration;
+int distance;
+const int distanceThreshold = 10; 
+int irSensorState;
+bool isFullNotified = false;
+void setup() {
+   Serial.begin(9600);
+  GSM.begin(9600);
+  dustbinServo.attach(servoPin);
+  dustbinServo.write(0); 
+  Serial.println("Lid is CLOSED at start"); 
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(irSensorPin, INPUT);
+  Serial.println("Smart Dustbin System Initialized"); }
+void loop() {
+ distance = getDistance();
+ if (distance <= distanceThreshold) {
+     dustbinServo.write(180);
+    Serial.println("Lid is OPEN");
+    delay(9000); 
+    dustbinServo.write(0); 
+    Serial.println("Lid is CLOSED");
+  }
+  irSensorState = digitalRead(irSensorPin);
+    if (irSensorState == HIGH && !isFullNotified) {
+    sendSMS("The dustbin is full. Please empty it.");
+    Serial.println("Dustbin Full: SMS Sent");
+    isFullNotified = true;
+  } else if (irSensorState == LOW) {
+     isFullNotified = false;
+  }
+delay(1000); }
+int getDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  int calculatedDistance = duration * 0.034 / 2;
+ return calculatedDistance;
+}
+void sendSMS(String message) {
+  GSM.println("AT+CMGF=1"); 
+  delay(1000);
+  GSM.println("AT+CMGS=\"+919600459519\""); 
+  delay(1000);
+  GSM.println(message); 
+  delay(1000);
+  GSM.println((char)26); 
+  delay(1000);
+ }
