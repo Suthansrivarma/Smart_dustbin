@@ -52,7 +52,7 @@ int getDistance() {
 void sendSMS(String message) {
   GSM.println("AT+CMGF=1"); 
   delay(1000);
-  GSM.println("AT+CMGS=\"+919600459519\""); 
+  GSM.println("AT+CMGS=\"+91987654321\""); 
   delay(1000);
   GSM.println(message); 
   delay(1000);
